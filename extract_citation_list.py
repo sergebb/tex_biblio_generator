@@ -10,7 +10,7 @@ def get_citations(tex_file):
         for line in file_data:
             citations = re.findall(r'cite\{.*?\}', line)
             for cite in citations:
-                cite_names = [cn.strip() for cn in cite.split('{')[1].split('}')[0].split(',')]
+                cite_names = [cn.strip() for cn in cite.replace('cite{','').replace('}','').split(',')]
                 for cn in cite_names:
                     if cn not in result:
                         result.append(cn)
