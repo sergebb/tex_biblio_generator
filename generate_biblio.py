@@ -26,6 +26,23 @@ def load_bibtex(bibtex_file_path):
 
     return bibtex_database.entries_dict
 
+def prepare_authors(bibtex_author):
+    result_line = ''
+    bibtex_names = bibtex_author.split(' and ')
+    for bib_name in bibtex_names:
+        if bib_name.find(',') >= 0:
+            first_name, second_name = bib_name.split(',')
+            short_second_name = ''.join([part[0]+'.' for part in second_name.split()])
+            result_line += first_name + ' ' + short_second_name + ', '
+        else:
+            result_line += bib_name + ', '
+
+    result_line = result_line[:-2] #Remove last comma
+
+    result_line = result_line.replace(", others"," и др.")
+
+    return result_line
+
 def fill_pattern(entry):
 
 #     pattern = """\\bibitem{%id}
@@ -44,22 +61,24 @@ def fill_pattern(entry):
     number = int(entry.get('number',0))
     pages = entry.get('pages','').encode('utf8')
 
-    result = '\\bibitem{%(item_id)s}\n{%(author)s}. %(title)s\n' % locals()
+    author = prepare_authors(author)
+
+    result = '\\bibitem{%(item_id)s}\n{%(author)s} %(title)s.\n' % locals()
     if journal:
-        result += '\\textit{%(journal)s}\n' % locals()
+        result += '\\textit{%(journal)s}.\n' % locals()
     if year:
-        result += '\\textit{%(year)d}\n' % locals()
+        result += '\\textit{%(year)d}.\n' % locals()
     if volume or number:
         result += '\\newblock '
         if volume:
-            result += 'V.~%(volume)d' % locals()
+            result += 'Т.~%(volume)d.' % locals()
         if volume and number:
-            result += ', '
+            result += ' '
         if number:
-            result += '№~%(number)d' % locals()
+            result += '№~%(number)d.' % locals()
         result += '\n'
     if pages:
-        result += '\\newblock P.~%(pages)s.' % locals()
+        result += '\\newblock С.~%(pages)s.\n' % locals()
 
     return result
 
@@ -94,7 +113,6 @@ def main():
     for cite in citations:
         if cite in bibtex_dict:
             print fill_pattern(bibtex_dict[cite])
-            print ''
         else:
             sys.stderr.write('Missing BIBtex entry: %s\n' % cite)
 
