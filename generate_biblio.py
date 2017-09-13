@@ -13,10 +13,11 @@ def get_citations(tex_file):
         for line in file_data:
             citations = re.findall(r'cite\{.*?\}', line)
             for cite in citations:
-                cite_names = [cn.strip() for cn in cite.replace('cite{','').replace('}','').split(',')]
-                for cn in cite_names:
-                    if cn not in result:
-                        result.append(cn)
+                cite_names = [cn.strip() for cn in \
+                                         cite.replace('cite{', '').replace('}', '').split(',')]
+                for cname in cite_names:
+                    if cname not in result:
+                        result.append(cname)
 
     return result
 
@@ -39,27 +40,27 @@ def prepare_authors(bibtex_author):
 
     result_line = result_line[:-2] #Remove last comma
 
-    result_line = result_line.replace(", others"," и др.")
+    result_line = result_line.replace(", others", " и др.")
 
     return result_line
 
 def fill_pattern(entry):
 
-#     pattern = """\\bibitem{%id}
-# {%author}. %title 
-# \\textit{%journal}. 
-# \\newblock %year. 
-# \\newblock V.~%vol, №~%num. 
+#  pattern = """\\bibitem{%id}
+# {%author}. %title
+# \\textit{%journal}.
+# \\newblock %year.
+# \\newblock V.~%vol, №~%num.
 # \\newblock P.~%pages."""
 
     item_id = entry['ID']
-    author = entry.get('author','').encode('utf8')
-    title = entry.get('title','').encode('utf8')
-    journal = entry.get('journal','').encode('utf8')
-    year = int(entry.get('year',0))
-    volume = int(entry.get('volume',0))
-    number = int(entry.get('number',0))
-    pages = entry.get('pages','').encode('utf8')
+    author = entry.get('author', '').encode('utf8')
+    title = entry.get('title', '').encode('utf8')
+    journal = entry.get('journal', '').encode('utf8')
+    year = int(entry.get('year', 0))
+    volume = int(entry.get('volume', 0))
+    number = int(entry.get('number', 0))
+    pages = entry.get('pages', '').encode('utf8')
 
     author = prepare_authors(author)
 
@@ -67,7 +68,7 @@ def fill_pattern(entry):
     if journal:
         result += '\\textit{%(journal)s}.\n' % locals()
     if year:
-        result += '\\textit{%(year)d}.\n' % locals()
+        result += '\\newblock %(year)d.\n' % locals()
     if volume or number:
         result += '\\newblock '
         if volume:
@@ -84,7 +85,8 @@ def fill_pattern(entry):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Generate bibliograpy by citations in tex file and bibtex file')
+    parser = argparse.ArgumentParser(description='Generate bibliograpy by citations in \
+                                                  tex file and bibtex file')
     parser.add_argument("tex_file", help="Input tex file")
     parser.add_argument("bibtex_file", help="Bibtex file")
     parser_args = parser.parse_args()
@@ -110,11 +112,16 @@ def main():
 
     bibtex_dict = load_bibtex(bibtex_file)
 
+    print '\\begin{thebibliography}{10}\n'
+
     for cite in citations:
+
         if cite in bibtex_dict:
             print fill_pattern(bibtex_dict[cite])
         else:
             sys.stderr.write('Missing BIBtex entry: %s\n' % cite)
+
+    print '\\end{thebibliography}'
 
 if __name__ == '__main__':
     main()
